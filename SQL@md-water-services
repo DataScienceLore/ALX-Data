@@ -1,0 +1,13 @@
+/* select * from location where employee_name like 'a%' 
+show tables where column like location_id; */
+-- select * from location limit 5 ; -- where province_name like 'Akatsi' ;
+-- select * from employee where employee_name like '%Ghadir%';     -- 129 Ziwa La Kioo Road
+-- select * from employee where position like 'Micro Biologist';  -- Vuyisile Ghadir, +99712584936
+-- SELECT max(number_of_people_served)  , COUNT(*) AS num_rows
+/* Select * FROM water_source
+GROUP BY source_id
+-- HAVING COUNT(*) > 1 AND LENGTH(source_id) > 5
+ORDER BY number_of_people_served DESC,
+source_id ASC
+LIMIT 10; */                    -- AkRu05603224
+-- select * from data_dictionary 
