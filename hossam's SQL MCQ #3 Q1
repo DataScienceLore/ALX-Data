@@ -1,0 +1,66 @@
+Q1 gives a query:
+// SELECT
+//     auditorRep.location_id,
+//     visitsTbl.record_id,
+//     Empl_Table.employee_name,
+//     auditorRep.true_water_source_score AS auditor_score,
+//     wq.subjective_quality_score AS employee_score
+// FROM auditor_report AS auditorRep
+// JOIN visits AS visitsTbl
+// ON auditorRep.location_id = visitsTbl.location_id
+// JOIN water_quality AS wq
+// ON visitsTbl.record_id = wq.record_id
+// JOIN employee as Empl_Table
+// ON Empl_Table.assigned_employee_id = visitsTbl.assigned_employee_id;
+
+and asks:
+The following query results in 2,698 rows of data being retrieved, but the auditor_report table only has 1,620 rows.
+Analyse the query and select the reason why this discrepancy occurs.
+Hint: Think about the type of relationship between our tables.
+
+  IF you try to implement a window function you will see that some locations are visited more than once(order by visit count):
+// SELECT
+//     auditorRep.location_id,
+//     visitsTbl.record_id,
+//     Empl_Table.employee_name,
+//     auditorRep.true_water_source_score AS auditor_score,
+//     wq.subjective_quality_score AS employee_score,
+//----->     count(auditorRep.location_id) over (partition by auditorRep.location_id) as visit_count
+// FROM auditor_report AS auditorRep
+// JOIN visits AS visitsTbl
+// ON auditorRep.location_id = visitsTbl.location_id
+// JOIN water_quality AS wq
+// ON visitsTbl.record_id = wq.record_id
+// JOIN employee as Empl_Table
+// ON Empl_Table.assigned_employee_id = visitsTbl.assigned_employee_id;
+which yields 2698 rows and still shows that some location_id recieved 8 visits
+
+and if you create a cte from the window function and count the distinct location_id in the window function as such:
+// with 
+// checks as (SELECT
+//     auditorRep.location_id,
+//     visitsTbl.record_id,
+//     Empl_Table.employee_name,
+//     auditorRep.true_water_source_score AS auditor_score,
+//     wq.subjective_quality_score AS employee_score,
+//----->     count(auditorRep.location_id) over (partition by auditorRep.location_id) as visit_count
+// FROM auditor_report AS auditorRep
+// JOIN visits AS visitsTbl
+// ON auditorRep.location_id = visitsTbl.location_id
+// JOIN water_quality AS wq
+// ON visitsTbl.record_id = wq.record_id
+// JOIN employee as Empl_Table
+// ON Empl_Table.assigned_employee_id = visitsTbl.assigned_employee_id)
+// select count(distinct(location_id)) from checks
+you will see that there are only 1620 rows, which means that there are 1620 locations and some are visited more than once and the total number of visits is 2689.
+
+  so, choices are:
+
+The auditor_report table has duplicate location_id values causing more rows to be retrieved than expected.
+      which can't be true due to line 46
+The water_quality table has incorrect record_id values causing an incorrect join with the visits table.
+      this in not true 
+The visits table has multiple records for each location_id, which when joined with auditor_report, results in multiple records for each location_id.
+------> this is my choice and is apparent from line 55
+The employee table has duplicate assigned_employee_id values leading to duplicate rows in the result set.
+      this is not true
